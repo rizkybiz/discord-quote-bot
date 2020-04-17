@@ -6,16 +6,22 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/rizkybiz/discord-quote-bot/commands"
 )
 
 //Token is the token of the dicord bot
 var Token string
 
+//Setup the commands map globally
+var commandsMap = commands.New()
+
 func init() {
 	flag.StringVar(&Token, "token", "", "token of the discord bot")
+	flag.Parse()
 }
 
 func main() {
@@ -31,8 +37,17 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// Register the pingPongHandler function from below so the session knows what to do
-	dg.AddHandler(pingPongHandler)
+	//Register the commandsMap triggers and handler functions
+	commandsMap.Register("!help", func(s *discordgo.Session, m *discordgo.Message) {
+		helpText := `List of Available Commands:
+		!help - Displays this message
+		!addquote - Use this command followed by a space, @<user> another space, then the quote you'd like to add
+		!quote - Use this command followed by a space and @<user> for a random quote from your favorite user`
+		s.ChannelMessageSend(m.ChannelID, helpText)
+	})
+
+	// Register the commands handler function from below so the session knows what to do
+	dg.AddHandler(processCmd)
 
 	// Connect to the server as the bot
 	err = dg.Open()
@@ -50,21 +65,30 @@ func main() {
 	return
 }
 
-//pingPongHandler is a handler function which will be registered in the main function on the *discordgo.Session
-func pingPongHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
-
+func processCmd(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
-	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "pong")
+
+	//Check if this is even a trigger command
+	if !strings.HasPrefix(m.Content, "!") {
+		return
 	}
 
-	// If the message is "pong" reply with "Ping!"
-	if m.Content == "pong" {
-		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	//Extract the trigger command
+	msgList := strings.SplitAfter(m.Content, " ")
+	trigger := msgList[0]
+
+	//Get the message from the messageCreate event
+	message := m.Message
+
+	//Check for existence of the trigger command and corresponding handler func
+	//If it doesn't exist, return the help message
+	if cmdFunc, ok := commandsMap[trigger]; ok {
+		cmdFunc(s, message)
+	} else {
+		log.Printf("Command %s does not exist", trigger)
+		s.ChannelMessageSend(m.ChannelID, `That command does not exist, type "!help" for available commands`)
 	}
 }
