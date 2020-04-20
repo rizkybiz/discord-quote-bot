@@ -1,5 +1,5 @@
 # discord-quote-bot #
-[![Go Report Card](https://goreportcard.com/badge/github.com/rizkybiz/discord-quote-bot)](https://goreportcard.com/report/github.com/rizkybiz/discord-quote-bot)[![CircleCI](https://circleci.com/gh/rizkybiz/discord-quote-bot.svg?style=svg)](https://circleci.com/gh/rizkybiz/discord-quote-bot)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rizkybiz/discord-quote-bot)](https://goreportcard.com/report/github.com/rizkybiz/discord-quote-bot) [![CircleCI](https://circleci.com/gh/rizkybiz/discord-quote-bot.svg?style=svg)](https://circleci.com/gh/rizkybiz/discord-quote-bot)
 
 This project was thrown together for fun and learning. This bot stores user quotes in memory (for now) so if it stops running you will lose your quotes!
 
